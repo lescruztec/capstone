@@ -1,0 +1,41 @@
+#board-view {
+    display: grid;
+    /*allows 16 columns with equal widths */
+    grid-template-columns: repeat(16, 1fr);  
+    background-color: dodgerblue;
+    padding: 10px;
+}
+#board-view div {
+    aspect-ratio: 1 / .5;
+    min-height: 8px;
+    background-color: #f1f1f1;
+    border: 1px solid black;
+    font-size: 30px;
+    
+    text-align: center;
+}
+
+.is_unrevealed {
+    background-color: #f1f1f1;
+    /* Default color for unrevealed tile text */
+    color: #333;
+}
+
+.is_revealed {
+    /* Color for revealed tiles */
+    background-color: #f1f1f1;
+    /* Color for revealed tile text */
+    color: #000;
+}
+
+.is_mine {
+    /* Color for mines */
+    background-color: #f1f1f1;
+}
+
+.is_flagged {
+    /* Color for mi */
+    background-color: #f1f1f1;
+
+    color: #215
+}

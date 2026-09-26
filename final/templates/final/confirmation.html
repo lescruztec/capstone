@@ -1,0 +1,27 @@
+{% extends "final/layout.html" %}
+
+{% block body %}
+    <!-- redirect back to create/get room, adjust template depending on who rendered this page(pass a variablem attach room id if applicable)-->
+    
+    <div>
+        Current: {{ role }} in {{ active_room }}
+        <br>
+        {% if url == 'join_room' %}
+            Joining: {{ room_id }}
+            <br>
+        {% endif %}
+        
+        Leave Current Room? <br>
+    </div>
+
+    <form action="{% url 'confirm_room' %}" method='POST'> 
+        {% csrf_token %}
+        <input type="hidden" name="room_id" value="{{room_id}}">
+        <input type="hidden" name="source" value="{{url}}">
+        <input type="submit">
+    </form>
+    <!-- redirect back to index probably-->
+   <a href="{% url 'index' %}">Return to Home Page</a>
+    
+    
+{% endblock %}

@@ -1,0 +1,8 @@
+Django==5.2
+python-dotenv
+psycopg2
+setuptools==74.1.2
+
+channels[daphne]==4.3.2
+channels_redis==4.3.0
+redis==7.0.1 

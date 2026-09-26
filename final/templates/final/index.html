@@ -1,0 +1,49 @@
+<!-- chat/templates/chat/index.html -->
+{% extends "final/layout.html" %}
+
+{% block body %}
+    What chat room would you like to enter?<br>
+    
+    <input id="room-id-submit" type="button" value="create room">
+
+    <!-- paginator for available rooms -->
+    <ul>
+        {% for room in page %}
+            <li class="room" data-room="{{ room.id }}"   >
+                <a href="{% url 'room' room.id %}">{{ room.id }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            {% if page.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page.previous_page_number }}">Previous</a></li>
+            {% endif %}
+            <li class="page-item"><a class="page-link" href="#">Page {{ page.number }} of {{ page.paginator.num_pages }}</a></li>
+            {% if page.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page.next_page_number }}">Next</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page.paginator.num_pages }}">Last</a></li>
+            {% endif %}
+        </ul>
+        </nav>
+
+    <script> 
+        // adjust later to enable confirmation pop up when user creates a room
+        document.querySelector('#room-id-submit').onclick = function() {
+            // room creation
+            window.location.pathname = 'create/';
+        };
+        // might need to throw this away
+        document.querySelectorAll('.room').forEach(element => {
+            element.onclick() = function(){
+                room_id = this.dataset.room
+                // need room join
+                window.pathname = room_id + '/';
+            }
+        })
+    </script>
+
+    
+{% endblock %}
