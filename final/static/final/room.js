@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('#leave-button').onclick = function() {
         // need room join
         window.location.pathname = `leave_room/`;
-        
     };
 
     socket.onmessage = function(e) {
@@ -36,10 +35,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = JSON.parse(e.data);
         
         if (data.type == "board.render"){
-                                console.log("BOARD RENDER RECEIVED");
-
+            console.log("BOARD RENDER RECEIVED");
             if (data.move_status){
-
                 document.querySelector('#transfer-view').style.display = 'block';
                 document.querySelector('#transfer-view').style.visibility = 'visible';
                 document.querySelector('#transfer-view').style.opacity = '1';
@@ -60,8 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
             render_player(data.participants)
         }
         else if (data.type == "board.new"){
-                console.log("NEW BOARD RECEIVED");
-
+            console.log("NEW BOARD RECEIVED");
             document.querySelector('#transfer-view').innerHTML = ""
             document.querySelector('#board-view').dataset.board = data.board_id
             initial_board(socket, data.cells) // to be adjusted
@@ -167,7 +163,7 @@ function render_player(participants) {
         else{
             connection = 'Offline'
         }
-        player.textContent = `${participant.username} | ${connection} | ${participant.status}`
+        player.textContent = `${participant.username} | ${participant.wins} | ${connection} | ${participant.status}`
         document.querySelector('#player-view').append(player);
        // there was a nested dict somewhere, take note for later
     })

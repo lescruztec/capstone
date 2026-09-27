@@ -14,7 +14,7 @@ import channels.layers
 from datetime import timedelta
 from django.utils import timezone
 
-from .helpers import check_participation, clean_unused_rooms
+from .helpers import check_participation, clean_unused_rooms, generate_cells
 from .models import User, Board, Cell, Board_Participation, Room
 
 
@@ -32,15 +32,16 @@ def index(request):
 # create room
 @login_required
 def create_room(request):
-    
     # check for existing participation (active/spectator)
     participation = check_participation(request.user)
     # create room_id here using room_name, assign it to the websocket on the js file later
     if not participation:
-        
         try:
             room = Room.objects.create()
             board = Board.objects.create(room=room)
+            # generate cells for newly created board
+            generate_cells(board)
+            Board_Participation.objects.create(user=request.user,last_seen=timezone.now(), board=board,has_left=False,status='active').save()
             return HttpResponseRedirect(reverse('room', args=[room.id]))
         except IntegrityError:
             return HttpResponse('Unable to Create Room.')
@@ -55,7 +56,7 @@ def room(request, room_id):
     # retrieve desired room and current board
     try:
         room = Room.objects.get(pk=room_id)
-        board = Board.objects.get(room=room,is_finished=False)
+        board = Board.objects.get(room=room, is_finished=False)
     except ObjectDoesNotExist:
         # if room has been deleted
         return HttpResponseRedirect(reverse('index'))

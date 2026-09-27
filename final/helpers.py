@@ -96,12 +96,18 @@ def update_players_status(board, status):
     active_players = []
     players = Board_Participation.objects.filter(board=board, status='active')
     for player in players:
+        if status == 'win':
+            player.user.wins += 1
+        player.user.games_played += 1
         player.status = status
         active_players.append(player) 
-    Board_Participation.objects.bulk_update(players, ['status'])
+    Board_Participation.objects.bulk_update(active_players, ['status'])
 
 @transaction.atomic 
 def generate_cells(board_model):
+    if board_model.is_generated:
+        return
+    board_model = Board.objects.select_for_update().get(pk=board_model.id)
     board = {}
     for i in range(0,30):
         board[i] = {}

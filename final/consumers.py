@@ -19,23 +19,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_id = self.scope["url_route"]["kwargs"]["room_id"]
         self.room_group_id = f"room_{self.room_id}"
         self.user = self.scope['user']
+
         # retrieve the current board  in a room 
         board = await Board.objects.aget(room_id=self.room_id,is_finished=False)
-
         self.board = board
         self.allowed_moves = ['flag', 'unflag', 'reveal']
+
         # Join room group
         await self.channel_layer.group_add(self.room_group_id, self.channel_name,)
         await self.accept() 
         reveal_all = board.is_finished
-
-        # generate cells for newly created board
-        if board.is_generated == False:
-            # get number of players
-            player_num = 0
-            async for player in Board_Participation.objects.filter(board=self.board, has_left=False):
-                player_num+=1
-            await database_sync_to_async(generate_cells)(board)
 
         # Send on-going board cells only to connected user
         await self.send(text_data=json.dumps({"type": "board.new", "board_id": self.board.id, "cells": await database_sync_to_async(board.serialize_cells)(reveal_all) }))
@@ -80,7 +73,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 )
                 
             if self.board.is_finished == True or participation.status != 'active':
-                    return
+                return
             board_id = int(text_data_json['board_id'])
             # prevents click during the 5-second delay to affect the next board
             if board_id != self.board.id:
