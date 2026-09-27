@@ -12,7 +12,7 @@ def process_move(row,col,move,board_id):
     # load and lock board to only allow one move at a time (prevents race conditions, especially with floodfills)
     board_model = Board.objects.select_for_update().get(pk=board_id)
     # doesn't allow clicks after a previous move had finished the board
-    if board_model.is_finished or  not board_model.is_generated:
+    if board_model.is_finished or not board_model.is_generated:
         return False
     elif move == 'reveal':
         # initialize board
@@ -102,7 +102,6 @@ def update_players_status(board, status):
 
 @transaction.atomic 
 def generate_cells(board_model):
-  
     board = {}
     for i in range(0,30):
         board[i] = {}

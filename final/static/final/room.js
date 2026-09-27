@@ -36,22 +36,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = JSON.parse(e.data);
         
         if (data.type == "board.render"){
-            render_board(data.cells)
+                                console.log("BOARD RENDER RECEIVED");
+
             if (data.move_status){
+
+                document.querySelector('#transfer-view').style.display = 'block';
+                document.querySelector('#transfer-view').style.visibility = 'visible';
+                document.querySelector('#transfer-view').style.opacity = '1';
                 if (data.move_status.status === 'win'){
                  // show a popup that says generating new board 
-                 document.querySelector('#transfer-view').innerHTML = "Howdy and Merry CHristmas! new board is on the way"
+                    document.querySelector('#transfer-view').textContent  = "Howdy and Merry CHristmas! new board is on the way"
                 }
                 else if (data.move_status.status === 'lose'){
                     // show a popup that says generating new board 
-                    document.querySelector('#transfer-view').innerHTML = "Better Luck Next Tim, Folks! ur new board is on the way"
+                    document.querySelector('#transfer-view').textContent  = "Better Luck Next Tim, Folks! ur new board is on the way"
                 }
             }
+            render_board(data.cells)
+            console.log(data.move_status)
+            
         }   
         else if (data.type == "player.render"){
             render_player(data.participants)
         }
         else if (data.type == "board.new"){
+                console.log("NEW BOARD RECEIVED");
+
             document.querySelector('#transfer-view').innerHTML = ""
             document.querySelector('#board-view').dataset.board = data.board_id
             initial_board(socket, data.cells) // to be adjusted
@@ -62,8 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function initial_board(socket, cells) {
     // create board with cells from server
-                                    console.log("clicked")
-
+    console.log("clicked")
     document.querySelector('#board-view').innerHTML = "";
     for (let i = 0; i < 30; i++) {
         for (let j = 0; j < 16; j++) {
