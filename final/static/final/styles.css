@@ -1,9 +1,12 @@
+body {
+    font-family: Arial, sans-serif;
+}
 #board-view {
     display: grid;
     /*allows 16 columns with equal widths */
     grid-template-columns: repeat(16, 1fr);  
-    background-color: dodgerblue;
     padding: 10px;
+    margin: 20px;
 }
 #board-view div {
     aspect-ratio: 1 / .5;
@@ -11,26 +14,33 @@
     background-color: #f1f1f1;
     border: 1px solid black;
     font-size: 30px;
-    
     text-align: center;
 }
 
 .is_unrevealed {
-    background-color: #f1f1f1;
+  
+    border: 1px solid #ccc;
+    text-align: center;
+    font-size: 20px;
+    cursor: pointer;
+
+    /* Default color for unrevealed tiles */
+    background-color: #eee;
+
     /* Default color for unrevealed tile text */
     color: #333;
 }
 
 .is_revealed {
     /* Color for revealed tiles */
-    background-color: #f1f1f1;
+    background-color: #ccc;
     /* Color for revealed tile text */
     color: #000;
 }
 
 .is_mine {
     /* Color for mines */
-    background-color: #f1f1f1;
+     background-color: #ff3333;
 }
 
 .is_flagged {

@@ -4,11 +4,11 @@ from datetime import timedelta
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
-from .helpers import process_move, generate_cells
+from .helpers import process_move, generate_cells, create_next_board
 from .models import User, Board, Cell, Board_Participation, Room
 
 
@@ -108,53 +108,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
 
             if self.board.is_finished == True:
-               asyncio.create_task(self.transfer_board())
-
-    async def transfer_board(self):
-         # pause and let users see finished board for a while
-        await asyncio.sleep(10)
-        # update board to newly created one
-        new_board = await Board.objects.acreate(room_id=self.room_id)
-        # transfer active players from old board to new board
-        transferred_players = []
-        # add last_seen attribute for the heartbeat(ping message) to the database, use that attribute to filter the to-be transferred players.
-        # also use that attribute to alter participation mid-game (?)
-        # transfer only players who have sent pings within the last 30 seconds
-        # added has_left attribute to accomodate people who intentionally leaves the room
-        current_time = timezone.now()
-        time_limit = current_time - timedelta(seconds=30)
-        
-        async for player in Board_Participation.objects.filter(board=self.board, has_left=False):
-            # inactive players become spectators
-            if player.last_seen >= time_limit:
-                last_seen = current_time
-                status = 'active'
-            else:
-                last_seen = player.last_seen
-                status = 'spectator'
-                
-            transferred_players.append(
-                Board_Participation(
-                    board=new_board,
-                    user_id = player.user_id,
-                    status = status,
-                    last_seen = last_seen,
-                    has_left=False
-                )
+               asyncio.create_task(self.transfer_board(self.board, self.room_id))
+               
+    async def transfer_board(self, board, room):
+        try:
+            # pause and let users see finished board for a while
+            await asyncio.sleep(10)
+            new_board = await database_sync_to_async(create_next_board)(board, room)
+            # Send new board  to room group
+            await self.channel_layer.group_send(
+                self.room_group_id, {"type": "board.new", "board_id": new_board.id, "cells": await database_sync_to_async(new_board.serialize_cells)(False)}
             )
-        # generate new cells for newly created board
-        await database_sync_to_async(generate_cells)(new_board)
-        # creates new board_participation objects in bulk from the previous active and connected players
-        await Board_Participation.objects.abulk_create(transferred_players)
-        # Send new board  to room group
-        await self.channel_layer.group_send(
-            self.room_group_id, {"type": "board.new", "board_id": new_board.id, "cells": await database_sync_to_async(new_board.serialize_cells)(False)}
-        )
-        # update player list to transferred players
-        await self.channel_layer.group_send(
-            self.room_group_id, {"type": "player.render", "participants": await database_sync_to_async(new_board.serialize_participants)()} 
-        )
-        
+            # update player list to transferred players
+            await self.channel_layer.group_send(
+                self.room_group_id, {"type": "player.render", "participants": await database_sync_to_async(new_board.serialize_participants)()} 
+            )
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            print(f"Board Transfer Failed: {e}")
+            # notify group of error
+            await self.channel_layer.group_send(text_data=json.dumps({
+                "type": "room.failed"
+            }))
+            Room.objects.get(pk=self.room_id).delete()
+    
     async def board_render(self, event):
         cells = event["cells"]
         move_status = event["move_status"]

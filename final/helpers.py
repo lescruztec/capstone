@@ -224,4 +224,40 @@ def clean_unused_rooms():
         if stale_room:
             # delete room
             room.delete()
+
+@transaction.atomic
+def create_next_board(old_board, room):
+    # update board to newly created one
+    new_board = Board.objects.create(room_id=room)
+    # transfer active players from old board to new board
+    transferred_players = []
+    # add last_seen attribute for the heartbeat(ping message) to the database, use that attribute to filter the to-be transferred players.
+    # also use that attribute to alter participation mid-game (?)
+    # transfer only players who have sent pings within the last 30 seconds
+    # added has_left attribute to accomodate people who intentionally leaves the room
+    current_time = timezone.now()
+    time_limit = current_time - timedelta(seconds=30)
     
+    for player in Board_Participation.objects.filter(board=old_board, has_left=False):
+        # inactive players become spectators
+        if player.last_seen >= time_limit:
+            last_seen = current_time
+            status = 'active'
+        else:
+            last_seen = player.last_seen
+            status = 'spectator'
+            
+        transferred_players.append(
+            Board_Participation(
+                board=new_board,
+                user_id = player.user_id,
+                status = status,
+                last_seen = last_seen,
+                has_left=False
+            )
+        )
+    # generate new cells for newly created board
+    (generate_cells)(new_board)
+    # creates new board_participation objects in bulk from the previous active and connected players
+    Board_Participation.objects.bulk_create(transferred_players)
+    return new_board
