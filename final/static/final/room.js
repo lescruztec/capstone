@@ -2,13 +2,11 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("room.js loaded");
     // retrieve room 
     const room_id = document.querySelector('#room_id').dataset.room;
+
     // create websocket connection
+    const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
     const socket = new WebSocket(
-        'ws://'
-        + window.location.host
-        + '/ws/room/'
-        + room_id
-        + '/'
+        protocol + window.location.host + '/ws/room/'+ room_id + '/'
     );
 
     const heartbeat = setInterval(() => {

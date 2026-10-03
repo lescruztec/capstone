@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 # for .env file
-import os
+import os, dj_database_url
 from dotenv import load_dotenv
 
 # load env variables from .env
@@ -81,7 +81,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("redis", 6379)],
+            "hosts": [os.getenv("REDIS_URL")],
         },
     },
 }
@@ -91,16 +91,9 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        # change NAME
-        'NAME': os.getenv('DATABASE'),
-        # additional database credentials
-        'USER': os.getenv('USER'),
-        # HOST must be set to 'db'
-        'HOST': os.getenv('HOST'),
-        'PASSWORD': os.getenv('PASSWORD'),
-        'PORT': os.getenv('PORT')
-
+        'ENGINE': dj_database_url.config(
+            default=os.getenv("DATABASE_URL")
+        )
     }
 }
 
@@ -140,3 +133,4 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
